@@ -23,13 +23,13 @@ pip install tensorflow # or tensorflow-gpu if you have a GPU at hand.
 
 **Those steps are only required if you want to re-train the model. Instead, if you just want to perform an inference with a pre-trained network, you can skip and go to the generation section.**
 
-The first step generates the cache for the audio files. Caching usually involves sampling the WAV files at 8KHz and trimming the silences. The task took roughly 10min on my server (i7 8770K).
+The first step generates the cache for the audio files. Caching usually involves sampling the WAV files at 8KHz and trimming the silences.
 
 ```
 python cli.py --regenerate_full_cache --multi_threading --cache_output_dir $CACHE_DIR --audio_dir $AUDIO_DIR
 ```
 
-The second step generates the inputs used in the softmax pre-training and the embeddings training. Everything is cached to make the training smoother and faster. In a nutshell, MFCC windows randomly sampled from the audio cached files and put in a unified pickle file. The task took roughly 15min on my server (i7 8770K).
+The second step generates the inputs used in the softmax pre-training and the embeddings training. Everything is cached to make the training smoother and faster. In a nutshell, MFCC windows randomly sampled from the audio cached files and put in a unified pickle file.
 
 ```
 python cli.py --generate_training_inputs --multi_threading --cache_output_dir $CACHE_DIR --audio_dir $AUDIO_DIR
@@ -65,7 +65,7 @@ samples
     ├── VIVOSDEV01_004.wav
 ```
 
-We can check the SAN and SAP of our new speaker `PhilippeRemy` by running:
+We can check the SAN and SAP of our new speaker `VIVOSDEV01` by running:
 
 ```
 python cli.py --unseen_speakers VIVOSDEV01,VIVOSDEV02
