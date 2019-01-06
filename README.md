@@ -3,7 +3,7 @@
 ### Installation
 
 ```
-git clone git@github.com:philipperemy/deep-speaker.git && cd deep-speaker
+git clone https://github.com/ph0ngt3p/deep-speaker.git && cd deep-speaker
 
 DS_DIR=~/deep-speaker-data
 AUDIO_DIR=$DS_DIR/vivos/
