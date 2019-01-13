@@ -5,11 +5,18 @@ import os
 import pickle
 import h5py
 import deepdish as dd
+import librosa
 
 from constants import c
 from speech_features import get_mfcc_features_390
 
 logger = logging.getLogger(__name__)
+
+
+def read_audio_from_filename(filename, sample_rate):
+    audio, _ = librosa.load(filename, sr=sample_rate, mono=True)
+    audio = audio.reshape(-1, 1)
+    return audio, filename
 
 
 def data_to_keras(data):
@@ -53,6 +60,17 @@ def generate_features(audio_entities, max_count, progress_bar=False):
         if len(features_per_conv) > 0:
             features.append(features_per_conv)
     return features
+
+
+def generate_features_for_new_file(input_filename):
+    audio_entities = get_audio(sample_rate=8000, input_filename=input_filename)
+    logger.info('Generating the inputs necessary for inference...')
+    logger.info('This might take a couple of minutes to complete.')
+    feat = generate_features(audio_entities, 500, progress_bar=False)
+    mean = np.mean([np.mean(t) for t in feat])
+    std = np.mean([np.std(t) for t in feat])
+    feat = normalize(feat, mean, std)
+    return feat
 
 
 def normalize(list_matrices, mean, std):
@@ -220,3 +238,28 @@ def parallel_function(f, sequence, num_threads=None):
     pool.close()
     pool.join()
     return cleaned
+
+
+FILENAME = 'filename'
+
+
+def get_audio(sample_rate, input_filename):
+    try:
+        audio, _ = read_audio_from_filename(input_filename, sample_rate)
+        energy = np.abs(audio[:, 0])
+        silence_threshold = np.percentile(energy, 95)
+        offsets = np.where(energy > silence_threshold)[0]
+        left_blank_duration_ms = (1000.0 * offsets[0]) // sample_rate  # frame_id to duration (ms)
+        right_blank_duration_ms = (1000.0 * (len(audio) - offsets[-1])) // sample_rate
+
+        obj = {'audio': audio,
+               'audio_voice_only': audio[offsets[0]:offsets[-1]],
+               'left_blank_duration_ms': left_blank_duration_ms,
+               'right_blank_duration_ms': right_blank_duration_ms,
+               FILENAME: input_filename}
+
+        cache = list()
+        cache.append(obj)
+        return cache
+    except librosa.util.exceptions.ParameterError as e:
+        logger.error(e)

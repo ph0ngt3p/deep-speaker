@@ -19,6 +19,7 @@ def arg_parse():
     arg_p.add_argument('--multi_threading', action='store_true')
     arg_p.add_argument('--unseen_speakers')  # p225,p226 example.
     arg_p.add_argument('--get_embeddings')  # p225 example.
+    arg_p.add_argument('--filename')
     return arg_p
 
 
@@ -66,9 +67,13 @@ def main():
         exit(1)
 
     if args.unseen_speakers is not None:
-        unseen_speakers = [x.strip() for x in args.unseen_speakers.split(',')]
-        from unseen_speakers import inference_unseen_speakers
-        inference_unseen_speakers(audio_reader, unseen_speakers[0], unseen_speakers[1])
+        speakers = [x.strip() for x in args.unseen_speakers.split(',')]
+        from unseen_speakers import MultithreadsInference
+        inference = MultithreadsInference(filename=args.filename,
+                                          audio_reader=audio_reader,
+                                          speakers=speakers)
+        results = inference.run()
+        print(results)
         exit(1)
 
     if args.get_embeddings is not None:
